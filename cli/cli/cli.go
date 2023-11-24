@@ -35,6 +35,7 @@ import (
 	configure "github.com/opencurve/curveadm/internal/configure/curveadm"
 	"github.com/opencurve/curveadm/internal/configure/hosts"
 	"github.com/opencurve/curveadm/internal/configure/topology"
+	"github.com/opencurve/curveadm/internal/daemon"
 	"github.com/opencurve/curveadm/internal/errno"
 	"github.com/opencurve/curveadm/internal/storage"
 	tools "github.com/opencurve/curveadm/internal/tools/upgrade"
@@ -43,6 +44,7 @@ import (
 	cliutil "github.com/opencurve/curveadm/internal/utils"
 	log "github.com/opencurve/curveadm/pkg/log/glg"
 	"github.com/opencurve/curveadm/pkg/module"
+	pigeoncore "github.com/opencurve/pigeon"
 )
 
 type CurveAdm struct {
@@ -69,7 +71,11 @@ type CurveAdm struct {
 	clusterName         string // current cluster name
 	clusterTopologyData string // cluster topology
 	clusterPoolData     string // cluster pool
+	clusterType         string // cluster type like develop, production, etc.
 	monitor             storage.Monitor
+
+	// pigeon
+	pigeon *pigeoncore.Pigeon
 }
 
 /*
@@ -195,7 +201,9 @@ func (curveadm *CurveAdm) init() error {
 	curveadm.clusterTopologyData = cluster.Topology
 	curveadm.clusterPoolData = cluster.Pool
 	curveadm.monitor = monitor
-
+	admServer := daemon.NewServer()
+	curveadm.pigeon = pigeoncore.NewPigeon([]*pigeoncore.HTTPServer{admServer})
+	curveadm.clusterType = cluster.Type
 	return nil
 }
 
@@ -276,6 +284,7 @@ func (curveadm *CurveAdm) ClusterUUId() string               { return curveadm.c
 func (curveadm *CurveAdm) ClusterName() string               { return curveadm.clusterName }
 func (curveadm *CurveAdm) ClusterTopologyData() string       { return curveadm.clusterTopologyData }
 func (curveadm *CurveAdm) ClusterPoolData() string           { return curveadm.clusterPoolData }
+func (curveadm *CurveAdm) ClusterType() string               { return curveadm.clusterType }
 func (curveadm *CurveAdm) Monitor() storage.Monitor          { return curveadm.monitor }
 
 func (curveadm *CurveAdm) GetHost(host string) (*hosts.HostConfig, error) {
@@ -533,4 +542,8 @@ func (curveadm *CurveAdm) PostAudit(id int64, ec error) {
 		log.Error("Set audit log status failed",
 			log.Field("Error", err))
 	}
+}
+
+func (curveadm *CurveAdm) GetPigeon() *pigeoncore.Pigeon {
+	return curveadm.pigeon
 }

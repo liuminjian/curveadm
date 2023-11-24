@@ -66,7 +66,7 @@ func NewStartTargetDaemonTask(curveadm *cli.CurveAdm, cc *configure.ClientConfig
 
 	// new task
 	subname := fmt.Sprintf("host=%s image=%s", options.Host, cc.GetContainerImage())
-	t := task.NewTask("Start Target Daemon", subname, hc.GetSSHConfig())
+	t := task.NewTask("Start Target Daemon", subname, hc.GetConnectConfig())
 
 	// add step to task
 	var status, containerId, out string
@@ -127,7 +127,8 @@ func NewStartTargetDaemonTask(curveadm *cli.CurveAdm, cc *configure.ClientConfig
 		ExecOptions: curveadm.ExecOptions(),
 	})
 	t.AddStep(&step.ContainerExec{
-		Command:     "tgtd -f &",
+		Command:     "tgtd -f",
+		Detached:    true,
 		ContainerId: &containerId,
 		ExecOptions: curveadm.ExecOptions(),
 	})
