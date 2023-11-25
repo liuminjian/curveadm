@@ -1,5 +1,13 @@
 .PHONY: build debug install test upload lint
 
+# image info
+IMAGE_NAME?=opencurve/curveadm
+# VERSION is the git tag
+VERSION?=$(shell git describe --tags --match "v*")
+GIT_COMMIT=$(shell git rev-parse --short HEAD)
+BUILD_TIME=$(shell date '+%Y%m%d.%H%M%S.%Z')
+
+
 # go env
 GOPROXY     := "https://goproxy.cn,direct"
 GOOS        := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
@@ -61,6 +69,16 @@ VERSION := "unknown"
 build:
 	$(GOENV) $(GO) build -o $(OUTPUT) $(BUILD_FLAGS) $(PACKAGES)
 	$(GO) build -o $(SERVER_OUTPUT)  $(SERVER_PACKAGES)
+
+build-mod:
+	$(GOENV) $(GO) build -mod vendor  -o $(OUTPUT) $(BUILD_FLAGS) $(PACKAGES)
+	$(GO) build -mod vendor  -o $(SERVER_OUTPUT)  $(SERVER_PACKAGES)
+
+package:
+	@echo "building image $(OUTPUT) ${VERSION} $(SERVER_OUTPUT)"
+	# 加快编译
+	if [ ! -d ./vendor ]; then (go mod tidy && go mod vendor); fi
+	docker build --network host --build-arg VERSION=${VERSION} --build-arg GIT_COMMIT=${GIT_COMMIT} -t ${IMAGE_NAME}:${VERSION} .
 
 debug:
 	$(GOENV) $(GO) build -o $(OUTPUT) $(DEBUG_FLAGS) $(PACKAGES)
