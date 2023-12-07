@@ -201,9 +201,9 @@ func (curveadm *CurveAdm) init() error {
 	curveadm.clusterTopologyData = cluster.Topology
 	curveadm.clusterPoolData = cluster.Pool
 	curveadm.monitor = monitor
+	curveadm.clusterType = cluster.Type
 	admServer := daemon.NewServer()
 	curveadm.pigeon = pigeoncore.NewPigeon([]*pigeoncore.HTTPServer{admServer})
-	curveadm.clusterType = cluster.Type
 	return nil
 }
 
