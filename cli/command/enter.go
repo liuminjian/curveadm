@@ -25,12 +25,16 @@
 package command
 
 import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+
 	"github.com/opencurve/curveadm/cli/cli"
+	"github.com/opencurve/curveadm/internal/configure/hosts"
 	"github.com/opencurve/curveadm/internal/configure/topology"
 	"github.com/opencurve/curveadm/internal/errno"
 	"github.com/opencurve/curveadm/internal/tools"
 	"github.com/opencurve/curveadm/internal/utils"
-	"github.com/spf13/cobra"
 )
 
 type enterOptions struct {
@@ -82,7 +86,18 @@ func runEnter(curveadm *cli.CurveAdm, options enterOptions) error {
 		return err
 	}
 
-	// 4) attch remote container
+	// 4) attach remote container
 	home := dc.GetProjectLayout().ServiceRootDir
+	hc, err := curveadm.GetHost(dc.GetHost())
+	if err != nil {
+		return err
+	}
+	if hc.GetProtocol() == hosts.HTTP_PROTOCOL {
+		// websocket
+		cfg := hc.GetHTTPConfig()
+
+		baseURL := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+		return tools.EnterContainer(curveadm, baseURL, containerId, home)
+	}
 	return tools.AttachRemoteContainer(curveadm, dc.GetHost(), containerId, home)
 }

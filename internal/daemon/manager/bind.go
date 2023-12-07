@@ -60,6 +60,11 @@ type DeployClusterDownloadRequest struct {
 	FilePath string `json:"filepath" form:"filepath" binding:"required"`
 }
 
+type EnterRequest struct {
+	ContainerId string `json:"containerId"  binding:"required"`
+	Home        string `json:"home"  default:"/"`
+}
+
 var requests = []Request{
 	{
 		http.MethodPost,
@@ -78,5 +83,11 @@ var requests = []Request{
 		"cluster.deploy.download",
 		DeployClusterDownloadRequest{},
 		DeployClusterDownload,
+	},
+	{
+		http.MethodGet,
+		"enter",
+		EnterRequest{},
+		EnterContainer,
 	},
 }
