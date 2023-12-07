@@ -20,9 +20,10 @@ import (
 	"io"
 	"os/exec"
 
+	"github.com/opencurve/pigeon"
+
 	"github.com/opencurve/curveadm/internal/daemon/core"
 	"github.com/opencurve/curveadm/internal/utils"
-	"github.com/opencurve/pigeon"
 )
 
 func DeployClusterCmd(r *pigeon.Request, ctx *Context) bool {
@@ -68,4 +69,11 @@ func DeployClusterDownload(r *pigeon.Request, ctx *Context) bool {
 	data := ctx.Data.(*DeployClusterDownloadRequest)
 	r.Logger().Info("DeployClusterDownload", pigeon.Field("file", data.FilePath))
 	return r.SendFile(data.FilePath)
+}
+
+func EnterContainer(r *pigeon.Request, ctx *Context) bool {
+	data := ctx.Data.(*EnterRequest)
+	r.Logger().Info("EnterContainer", pigeon.Field("container", data.ContainerId), pigeon.Field("home", data.Home))
+	err := enter(r, data)
+	return core.Exit(r, err)
 }
